@@ -1,0 +1,199 @@
+# ///////////////////////////////////////////////
+# Agentcord Configuration
+# ///////////////////////////////////////////////
+
+# Config schema version — do not edit.
+version = 1
+
+# ///// Discord /////
+
+[discord]
+# Application ID for Discord Rich Presence.
+# Override with your own Discord app if you want custom images.
+app_id = "1472319454909173911"
+
+# ///// Display /////
+
+[display]
+# Format strings for the presence card.
+# Available variables: {project}, {branch}, {model}, {cost}, {tokens}
+# Agentic variables: {tool}, {tool_target}, {file}, {agent_state}, {permission}, {client}
+# Extended tokens: {input_tokens}, {output_tokens}, {cache_tokens}, {turns}
+# Git extended: {git_owner}, {git_repo}
+# Format suffixes: {file:basename}, {file:dir}, {file:ext}, {model:short}, {model:full}, {model:raw}
+# 
+# details = top line, state = bottom line
+details = "Working on: {project} ({branch})"
+state = "{model} · ~${cost} API value"
+# What to show when there's no git branch
+details_no_branch = "Working on: {project}"
+# What to show when cost is unavailable (pricing source unreachable, no pricing data)
+state_no_cost = "{model} · {tokens} tokens"
+
+# ///// Assets /////
+
+[display.assets]
+# Discord image keys (must match assets uploaded to your Discord app)
+large_image = "app_icon"
+large_text = "Agentcord"
+# Small image shows the active model tier.
+# Upload icons named "opus", "sonnet", "haiku" to your Discord app's Rich Presence assets.
+# The daemon automatically sets small_image based on the current model.
+# Set to false to disable the small image overlay entirely.
+show_model_icon = true
+
+# ///// Buttons /////
+
+[display.buttons]
+# Auto-detect git remote URL and show a "View Repository" button on the card.
+# Only works when the project CWD has a git remote configured.
+show_repo_button = true
+repo_button_label = "View Repository"
+
+# Custom second button (optional). Both label and url must be set.
+# custom_button_label = "My Website"
+
+# custom_button_url = "https://example.com"
+
+# ///// Format /////
+
+[display.format]
+# How to format the model name. Options: "short", "full", "raw"
+#   short: "Opus 4.6"  (strip "claude-" prefix, title case)
+#   full:  "Claude Opus 4.6"
+#   raw:   "claude-opus-4-6"  (exact model ID)
+model_name = "short"
+# model_name = "full"
+# model_name = "raw"
+# Cost display format (Go fmt syntax)
+cost_format = "%.2f"
+# Token count format. Options: "short", "full"
+#   short: "1.5M", "234K", "500"
+#   full:  "1,500,000"
+token_format = "short"
+# token_format = "full"
+# Branch display format. Options: "show", "hide", "hide_default"
+#   show: show branch name as-is
+#   hide: never show branch
+#   hide_default: hide branches listed in default_branches
+branch = "show"
+# branch = "hide"
+# branch = "hide_default"
+# Branches hidden when branch format is "hide_default".
+default_branches = ["main", "master"]
+
+# ///// Timestamps /////
+
+[display.timestamps]
+# What the elapsed timer tracks. Options: "session", "elapsed", "none"
+#   session: resets when session_id changes (per Claude Code session)
+#   elapsed: resets when daemon starts (persists across sessions)
+#   none:    no timestamp shown
+mode = "session"
+# mode = "elapsed"
+# mode = "none"
+
+# ///// Privacy /////
+
+[privacy]
+# Replace project name with generic text in the presence card.
+hide_project_name = false
+# Text shown instead of the real project name when hide_project_name is true.
+hidden_project_text = "a project"
+# Directories to completely ignore — no presence shown when working in these.
+# Absolute paths. Glob patterns supported.
+ignore = []
+# # ignore = [
+# #   "C:/Users/Zach/work/secret-project",
+# #   "C:/Users/Zach/company/*",
+# # ]
+
+# Per-project privacy overrides. Each entry matches a glob pattern against the CWD.
+# # [[privacy.overrides]]
+# # pattern = "*/work/*"
+# # hide_project_name = true
+# # hidden_text = "a work project"
+
+# ///// Behavior /////
+
+[behavior]
+# Show cost in the state line
+show_cost = true
+# Show token count (used when cost is unavailable, or alongside cost)
+show_tokens = false
+# Show git branch in details line
+show_branch = true
+# Use Claude Code statusline instead of state.json for session data.
+# Requires Claude Code v1.0.33+.
+use_statusline = false
+# Only show cost if it's >= this value. 0 = always show.
+cost_show_threshold = 0.0
+# Only show tokens if count is >= this value. 0 = always show.
+tokens_show_threshold = 0
+# What to show when idle. Options: "clear", "idle_text", "last_activity"
+#   clear: hide presence entirely (default)
+#   idle_text: show idle_details/idle_state text
+#   last_activity: keep showing the last active presence
+idle_mode = "clear"
+# idle_mode = "idle_text"
+# idle_mode = "last_activity"
+# Details line when idle (only used with idle_mode = "idle_text")
+idle_details = ""
+# State line when idle (only used with idle_mode = "idle_text")
+idle_state = "Idle"
+# Minutes of inactivity before presence hides from your Discord profile.
+# Daemon stays alive — presence resumes on next activity with the original
+# session timer preserved (elapsed time reflects real session duration).
+presence_idle_minutes = 5
+# Minutes of inactivity before the daemon process exits entirely.
+# Must be >= presence_idle_minutes. Daemon auto-restarts on next hook fire.
+daemon_idle_minutes = 30
+# How often to poll for state changes (seconds). fsnotify is primary,
+# this is the fallback interval.
+poll_interval_seconds = 5
+# Discord reconnect interval (seconds)
+reconnect_interval_seconds = 15
+# Remove orphaned session markers older than this many hours.
+# Orphans appear when Claude Code exits without firing the stop hook.
+session_cleanup_hours = 24
+
+# ///// Pricing /////
+
+[pricing]
+# Where to get model pricing data. Options: "url", "file", "static"
+#   url: fetch from a remote API (default)
+#   file: read from a local JSON file
+#   static: use inline prices defined in [pricing.models]
+source = "url"
+# source = "file"
+# source = "static"
+# How to parse the pricing response. Options: "openrouter", "litellm", "agentcord"
+# Each format has a default URL when source = "url":
+#   openrouter -> https://openrouter.ai/api/v1/models
+#   litellm    -> https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+#   agentcord  -> (no default, url required)
+format = "openrouter"
+# format = "litellm"
+# format = "agentcord"
+
+# Local file path (for source = "file").
+# # file = "/path/to/pricing.json"
+
+# Inline prices (for source = "static").
+# # [pricing.models.claude-opus-4-6]
+# # input_per_token = 0.000015
+# # output_per_token = 0.000075
+
+# Custom URL (overrides the format's default URL).
+# # url = "https://my-proxy.internal/api/v1/models"
+
+# ///// Log /////
+
+# Logging configuration
+[log]
+# Minimum log level. Options: "trace", "debug", "info", "warn", "error"
+level = "info"
+# level = "debug"
+# level = "warn"
+# Maximum log file size in megabytes before rotation.
+max_size_mb = 10

@@ -1,0 +1,53 @@
+name: New Tool Integration
+description: Request or propose support for a new agentic coding tool
+labels: [new-tool]
+body:
+  - type: input
+    id: tool-name
+    attributes:
+      label: Tool Name
+      placeholder: e.g. Aider, Continue, Cline
+    validations:
+      required: true
+
+  - type: input
+    id: homepage
+    attributes:
+      label: Homepage URL
+      placeholder: https://example.com
+    validations:
+      required: true
+
+  - type: dropdown
+    id: hook-system
+    attributes:
+      label: Hook System
+      description: Does this tool have a hook or extension API for capturing session events?
+      options:
+        - "Yes - has hooks/extension API"
+        - "Partial - some events available"
+        - "No - no hook system"
+        - "Unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: hook-details
+    attributes:
+      label: Hook System Details
+      description: Describe available events, session ID field, log format, etc.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution Willingness
+      description: How would you like to help?
+      options:
+        - "I'll submit a PR"
+        - I can help test
+        - I can provide docs/info only
+        - Just requesting
+    validations:
+      required: true

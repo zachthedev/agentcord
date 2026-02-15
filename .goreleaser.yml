@@ -1,0 +1,31 @@
+version: 2
+
+builds:
+  - main: ./cmd/agentcord
+    binary: agentcord
+    ldflags:
+      - "-X main.version={{.Version}} -X tools.zach/dev/agentcord/internal/remote.ldOwner={{.Env.GITHUB_REPOSITORY_OWNER}} -X tools.zach/dev/agentcord/internal/remote.ldRepo={{.ProjectName}}"
+    env:
+      - CGO_ENABLED=0
+    goos: [windows, linux, darwin]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: archive
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+  - id: bare
+    formats: [binary]
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: 'checksums.txt'
+
+release:
+  use_existing_draft: true
+  mode: keep-existing
+
+changelog:
+  disable: true

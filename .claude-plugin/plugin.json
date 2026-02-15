@@ -1,0 +1,9 @@
+{
+  "name": "agentcord",
+  "version": "0.0.0",
+  "description": "Discord Rich Presence for Claude Code — project, model, and API cost value",
+  "author": { "name": "zachthedev" },
+  "repository": "https://github.com/zachthedev/agentcord",
+  "license": "MIT",
+  "keywords": ["discord", "rich-presence", "rpc", "cost"]
+}

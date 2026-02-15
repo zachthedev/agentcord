@@ -1,0 +1,158 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.initial.outputs.code || steps.changed.outputs.any_changed }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+      - name: Detect initial commit
+        id: initial
+        run: |
+          if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: tj-actions/changed-files@8cba46e29c11878d930bca7870bb54394d3e8b21 # v47.0.2
+        if: ${{ !steps.initial.outputs.code }}
+        id: changed
+        with:
+          files_ignore: |
+            CHANGELOG.md
+            .release-manifest.json
+
+  lint:
+    needs: [gate]
+    if: needs.gate.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.8.0
+
+  generate:
+    needs: [gate]
+    if: needs.gate.outputs.code == 'true'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go generate ./...
+      - run: git diff --exit-code
+
+  test:
+    needs: [gate, lint, generate]
+    if: needs.gate.outputs.code == 'true'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - uses: oven-sh/setup-bun@v2
+      - name: Test with coverage
+        if: matrix.os == 'ubuntu-latest'
+        run: go test -race -coverprofile=coverage.out ./...
+      - name: Test
+        if: matrix.os != 'ubuntu-latest'
+        run: go test -race ./...
+      # Bash function tests (BATS) — Unix only
+      - name: Install BATS
+        if: matrix.os != 'windows-latest'
+        run: bun install -g bats
+
+      - name: Test shell scripts
+        if: matrix.os != 'windows-latest'
+        run: bats scripts/hooks/test/unix/
+
+      # PowerShell function tests (Pester) — Windows only
+      - name: Test PowerShell scripts
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: Invoke-Pester scripts/hooks/test/windows/ -CI
+
+      # Dispatcher test — all platforms
+      - name: Test dispatch.ts
+        run: bun test scripts/hooks/test/dispatch.test.ts
+
+      - name: Build
+        if: matrix.os != 'windows-latest'
+        run: make build
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          VERSION=$(go run ./cmd/buildver)
+          REMOTE_PKG=tools.zach/dev/agentcord/internal/remote
+          REPO_OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d/ -f1)
+          REPO_NAME=$(echo "$GITHUB_REPOSITORY" | cut -d/ -f2)
+          LDFLAGS="-X main.version=${VERSION} -X ${REMOTE_PKG}.ldOwner=${REPO_OWNER} -X ${REMOTE_PKG}.ldRepo=${REPO_NAME}"
+          CGO_ENABLED=0 go build -trimpath -ldflags "${LDFLAGS}" -o agentcord.exe ./cmd/agentcord
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.out
+          fail_ci_if_error: false
+
+  check:
+    if: always()
+    needs: [gate, lint, generate, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # On PRs with no code changes, wait for the push-to-main Check to pass
+      # instead of re-running the full suite. Covers the first-release edge case.
+      - name: Require base branch check
+        if: github.event_name == 'pull_request' && needs.gate.outputs.code != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA="${{ github.event.pull_request.base.sha }}"
+          REPO="${{ github.repository }}"
+          until RUN_ID=$(gh api "repos/$REPO/actions/workflows/check.yml/runs?event=push&head_sha=$SHA" \
+            --jq '.workflow_runs[0].id') && [ "$RUN_ID" != "null" ] && [ -n "$RUN_ID" ]; do
+            sleep 1
+          done
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status
+      - uses: re-actors/alls-green@release/v1
+        with:
+          allowed-skips: lint, generate, test
+          jobs: ${{ toJSON(needs) }}

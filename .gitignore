@@ -1,0 +1,28 @@
+# Build output
+dist/
+*.exe
+*.test
+*.out
+
+# Coverage
+coverage.txt
+coverage.html
+*.coverprofile
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local-only notes (not committed)
+*.local.md
+*.local.*
+
+# Google Fonts cache (downloaded by gen-assets)
+assets/fonts/.cache/

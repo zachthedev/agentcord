@@ -1,0 +1,33 @@
+{
+  "_comment": "Example hooks.json for a new tool integration. Adapt event names and paths to your tool's hook system.",
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "",
+      "description": "Update Discord presence before tool execution",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" activity your-tool",
+        "timeout": 30
+      }],
+      "async": true
+    }],
+    "PostToolUse": [{
+      "matcher": "",
+      "description": "Update Discord presence after tool execution",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" activity your-tool",
+        "timeout": 30
+      }],
+      "async": true
+    }],
+    "Stop": [{
+      "description": "Mark session as stopped",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" stop your-tool",
+        "timeout": 30
+      }]
+    }]
+  }
+}

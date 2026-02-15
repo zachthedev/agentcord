@@ -1,0 +1,23 @@
+{
+  "default_icon": "default",
+  "defaults": {
+    "fg_color": "#FFFFFF",
+    "size": 1024,
+    "font_size": 680
+  },
+  "clients": {
+    "claude-code": {
+      "default_icon": "claude",
+      "font": "assets/fonts/Copernicus-ExtraBold.local.ttf",
+      "font_fallback": "google:Inter:800",
+      "defaults": {
+        "bg_color": "#DA7756"
+      },
+      "tiers": {
+        "opus": {},
+        "sonnet": {},
+        "haiku": {}
+      }
+    }
+  }
+}

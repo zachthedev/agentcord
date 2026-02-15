@@ -1,0 +1,66 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+
+linters:
+  default: none
+  enable:
+    # Bug detection
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - bodyclose
+    - durationcheck
+    - nilerr
+    - copyloopvar
+
+    # Style & consistency
+    - misspell
+    - unconvert
+    - unused
+    - whitespace
+
+    # Complexity
+    - gocyclo
+    - nestif
+
+  settings:
+    gocyclo:
+      min-complexity: 20
+    nestif:
+      min-complexity: 6
+    errcheck:
+      check-type-assertions: false
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (*net/http.Response.Body).Close
+        - (io.Closer).Close
+        - os.Setenv
+        - os.Rename
+        - os.Remove
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+        - shadow
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - errcheck
+        path: _test\.go

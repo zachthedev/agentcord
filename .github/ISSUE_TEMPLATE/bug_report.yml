@@ -1,0 +1,103 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+labels: [bug]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of Agentcord is affected?
+      options:
+        - Daemon
+        - Hook scripts
+        - Dispatch
+        - Discord IPC
+        - Config
+        - Installer
+        - Statusline
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: client-tool
+    attributes:
+      label: Client Tool
+      description: Which agentic coding tool are you using?
+      options:
+        - Claude Code
+        - Cursor
+        - Windsurf
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux (Ubuntu/Debian)
+        - Linux (Other)
+        - WSL
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "Run `agentcord --version` or check daemon.log"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Start the daemon with...
+        2. Open Claude Code / Cursor / etc.
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-vs-actual
+    attributes:
+      label: Expected vs Actual Behavior
+      description: What did you expect to happen, and what actually happened?
+      placeholder: |
+        **Expected:** Discord shows "Editing main.go"
+        **Actual:** Discord shows nothing / crashes / ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: daemon-log
+    attributes:
+      label: Daemon Log
+      description: Paste relevant lines from the daemon log file (optional).
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Config
+      description: Paste your config file if relevant (optional). Remove any sensitive values.
+      render: toml
+    validations:
+      required: false

@@ -1,0 +1,50 @@
+name: Prepare
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Generate token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      # Use npx release-please@17.2.0 instead of the action because
+      # the action bundles an older version that doesn't support
+      # force-tag-creation (needed for draft releases).
+      # Tracking: https://github.com/googleapis/release-please-action/pull/1178
+      - name: Create releases
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          npx release-please@17.2.0 github-release \
+            --repo-url="${{ github.server_url }}/${{ github.repository }}" \
+            --token="${{ steps.app-token.outputs.token }}" \
+            --config-file=release-config.json \
+            --manifest-file=.release-manifest.json
+
+      - name: Create or update release PR
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          RELEASE_AS=""
+          if ! gh api repos/${{ github.repository }}/tags --jq '.[].name' 2>/dev/null | grep -q '^v'; then
+            RELEASE_AS="--release-as 0.0.0"
+          fi
+          npx release-please@17.2.0 release-pr \
+            --repo-url="${{ github.server_url }}/${{ github.repository }}" \
+            --token="${{ steps.app-token.outputs.token }}" \
+            --config-file=release-config.json \
+            --manifest-file=.release-manifest.json \
+            $RELEASE_AS

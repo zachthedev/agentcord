@@ -1,0 +1,79 @@
+{
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "",
+      "description": "Initialize agentcord daemon and verify dependencies",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" postinstall claude-code",
+        "timeout": 10
+      }]
+    }],
+    "PreToolUse": [{
+      "matcher": "",
+      "description": "Update Discord presence before tool execution",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" activity claude-code",
+        "timeout": 30
+      }],
+      "async": true
+    }],
+    "PostToolUse": [{
+      "matcher": "",
+      "description": "Update Discord presence after tool execution",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" activity claude-code",
+        "timeout": 30
+      }],
+      "async": true
+    }],
+    "PostToolUseFailure": [{
+      "matcher": "",
+      "description": "Update Discord presence after tool failure to prevent premature idle",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" activity claude-code",
+        "timeout": 30
+      }],
+      "async": true
+    }],
+    "Notification": [{
+      "matcher": "",
+      "description": "Update presence on idle/permission notification",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" activity claude-code",
+        "timeout": 30
+      }],
+      "async": true
+    }],
+    "UserPromptSubmit": [{
+      "matcher": "",
+      "description": "Update presence when user sends a message",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" activity claude-code",
+        "timeout": 30
+      }],
+      "async": true
+    }],
+    "Stop": [{
+      "description": "Mark session as stopped in state file",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" stop claude-code",
+        "timeout": 30
+      }]
+    }],
+    "SessionEnd": [{
+      "description": "Clean up session markers and stop daemon if idle",
+      "hooks": [{
+        "type": "command",
+        "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/dispatch.ts\" sessionend claude-code",
+        "timeout": 30
+      }]
+    }]
+  }
+}
