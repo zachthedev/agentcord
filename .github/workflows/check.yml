@@ -32,7 +32,7 @@ jobs:
           if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           fi
-      - uses: tj-actions/changed-files@8cba46e29c11878d930bca7870bb54394d3e8b21 # v47.0.2
+      - uses: tj-actions/changed-files@7dee1b0c1557f278e5c7dc244927139d78c0e22a # v47.0.4
         if: ${{ !steps.initial.outputs.code }}
         id: changed
         with:
